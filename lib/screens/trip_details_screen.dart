@@ -3,13 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trip_planner_app/models/trip_model.dart';
+import 'package:trip_planner_app/screens/add_trip_screen.dart'; // AddTripScreen import කිරීම
 import 'package:trip_planner_app/widgets/budget_tab_view.dart';
 import 'package:trip_planner_app/widgets/itinerary_tab_view.dart';
 import 'package:trip_planner_app/widgets/packing_list_tab_view.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
-
   const TripDetailsScreen({super.key, required this.trip});
 
   @override
@@ -23,7 +23,6 @@ class _TripDetailsScreenState extends State<TripDetailsScreen>
   @override
   void initState() {
     super.initState();
-    // Tab Controller එකේ length එක 3 ලෙස සකස් කිරීම
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -50,6 +49,28 @@ class _TripDetailsScreenState extends State<TripDetailsScreen>
             ),
           ],
         ),
+        // AppBar එකේ දකුණු පස actions (Edit button) එකතු කිරීම
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_rounded),
+            tooltip: 'Edit Trip',
+            onPressed: () {
+              // AddTripScreen එකට, edit කිරීමට අවශ්‍ය trip object එක සමඟ යොමු කිරීම
+              Navigator.of(context)
+                  .push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddTripScreen(tripToEdit: widget.trip),
+                    ),
+                  )
+                  .then((_) {
+                    // Edit screen එකෙන් ආපසු ආ විට, UI එක refresh වීමට
+                    // (මෙය state management library එකක් නොමැතිව කරන සරල ක්‍රමයකි)
+                    setState(() {});
+                  });
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -61,21 +82,16 @@ class _TripDetailsScreenState extends State<TripDetailsScreen>
             Tab(
               icon: Icon(Icons.account_balance_wallet_rounded),
               text: 'Budget',
-            ), // <--- Budget Tab
+            ),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // 1 වෙනි Tab එකේ content එක
           ItineraryTabView(trip: widget.trip),
-
-          // 2 වෙනි Tab එකේ content එක
           PackingListTabView(tripId: widget.trip.id!),
-
-          // 3 වෙනි Tab එකේ content එක
-          BudgetTabView(trip: widget.trip), // <--- Budget Tab View
+          BudgetTabView(trip: widget.trip),
         ],
       ),
     );

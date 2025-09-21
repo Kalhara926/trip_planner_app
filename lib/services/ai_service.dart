@@ -20,7 +20,7 @@ class AiService {
       return [];
     }
 
-    final model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey!);
+    final model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
     final tripDays = trip.endDate.difference(trip.startDate).inDays + 1;
     final tripDates = List.generate(
       tripDays,

@@ -52,8 +52,8 @@ class _BudgetTabViewState extends State<BudgetTabView> {
                           ]
                           .map(
                             (label) => DropdownMenuItem(
-                              child: Text(label),
                               value: label,
+                              child: Text(label),
                             ),
                           )
                           .toList(),
@@ -146,8 +146,8 @@ class _BudgetTabViewState extends State<BudgetTabView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddExpenseDialog,
-        child: Icon(Icons.add),
         tooltip: 'Add Expense',
+        child: Icon(Icons.add),
       ),
     );
   }

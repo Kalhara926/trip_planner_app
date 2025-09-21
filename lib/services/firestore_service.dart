@@ -1,4 +1,4 @@
-// File: lib/services/firestore_service.dart
+// lib/services/firestore_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trip_planner_app/models/expense_model.dart';
@@ -40,6 +40,10 @@ class FirestoreService {
       await doc.reference.delete();
     }
     await tripRef.delete();
+  }
+
+  Future<void> updateTrip(Trip trip) {
+    return _db.collection('trips').doc(trip.id).update(trip.toFirestore());
   }
 
   // --- Itinerary Functions ---
