@@ -1,56 +1,67 @@
-// lib/services/auth_service.dart
+// File: lib/services/auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trip_planner_app/models/user_model.dart';
+import 'package:trip_planner_app/services/firestore_service.dart';
 
 class AuthService {
-  // Firebase Auth instance එකක් හදාගන්නවා
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreService _firestoreService = FirestoreService();
 
-  // 1. Sign Up (Email & Password)
+  /// Email සහ Password සමඟින් User කෙනෙක්ව register කර, Firestore profile එකක් සෑදීම
   Future<User?> signUpWithEmailAndPassword(
     String email,
     String password,
+    String fullName,
+    String username,
   ) async {
     try {
-      // Firebase එකේ createUserWithEmailAndPassword function එක call කරනවා
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return credential.user; // සාර්ථක නම්, user object එක return කරනවා
+
+      if (credential.user != null) {
+        // Auth record එක හැදුනට පස්සේ, Firestore profile එක හදනවා
+        MyUser newUser = MyUser(
+          uid: credential.user!.uid,
+          email: email,
+          fullName: fullName,
+          username: username,
+        );
+        await _firestoreService.createUserProfile(newUser);
+        return credential.user;
+      }
+      return null;
     } catch (e) {
-      // Error එකක් ආවොත්, console එකේ print කරලා null return කරනවා
       print("Something went wrong during sign up: $e");
       return null;
     }
   }
 
-  // 2. Sign In (Email & Password)
+  /// Email සහ Password සමඟින් User කෙනෙක්ව Sign In කිරීම
   Future<User?> signInWithEmailAndPassword(
     String email,
     String password,
   ) async {
     try {
-      // Firebase එකේ signInWithEmailAndPassword function එක call කරනවා
       UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return credential.user; // සාර්ථක නම්, user object එක return කරනවා
+      return credential.user;
     } catch (e) {
-      // Error එකක් ආවොත්
       print("Something went wrong during sign in: $e");
       return null;
     }
   }
 
-  // 3. Sign Out
+  /// User ව Sign Out කිරීම
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // 4. User ගේ තත්ත්වය (Stream)
-  // මේකෙන් user log වෙලාද නැද්ද කියලා real-time එකේ බලාගන්න පුළුවන්
+  /// User ගේ authentication state එකට සවන් දීම
   Stream<User?> get user {
     return _auth.authStateChanges();
   }

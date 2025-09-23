@@ -1,12 +1,14 @@
-// lib/models/itinerary_item_model.dart
+// File: lib/models/itinerary_item_model.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ItineraryItem {
   final String? id;
-  final String description; // සිදුවීමේ විස්තරය
-  final DateTime time; // සිදුවීම වන වේලාව
-  final String tripId; // මේක අයිති කුමන trip එකටද
-  final DateTime date; // මේක අයිති කුමන දවසටද
+  final String description;
+  final DateTime time;
+  final String tripId;
+  final DateTime date;
+  final GeoPoint position;
 
   ItineraryItem({
     this.id,
@@ -14,9 +16,9 @@ class ItineraryItem {
     required this.time,
     required this.tripId,
     required this.date,
+    required this.position,
   });
 
-  // Firestore Map -> ItineraryItem Object
   factory ItineraryItem.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
@@ -27,16 +29,17 @@ class ItineraryItem {
       time: (data['time'] as Timestamp).toDate(),
       tripId: data['tripId'],
       date: (data['date'] as Timestamp).toDate(),
+      position: data['position'] as GeoPoint,
     );
   }
 
-  // ItineraryItem Object -> Firestore Map
   Map<String, dynamic> toFirestore() {
     return {
       'description': description,
       'time': time,
       'tripId': tripId,
       'date': date,
+      'position': position,
     };
   }
 }

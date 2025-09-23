@@ -1,5 +1,6 @@
 // File: lib/widgets/itinerary_tab_view.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trip_planner_app/models/itinerary_item_model.dart';
@@ -18,70 +19,153 @@ class ItineraryTabView extends StatefulWidget {
 class _ItineraryTabViewState extends State<ItineraryTabView> {
   final FirestoreService _firestoreService = FirestoreService();
   final AiService _aiService = AiService();
-  bool _isGenerating =
-      false; // AI එක ක්‍රියාත්මක වන විට loading state එක පාලනය කිරීමට
+  bool _isGenerating = false;
 
-  // AI Itinerary Generation සඳහා dialog box එක පෙන්වීම
   void _showGenerateDialog() {
     final interestsController = TextEditingController();
     showDialog(
       context: context,
-      barrierDismissible:
-          false, // Loading වන විට dialog එක close වීම වැළැක්වීමට
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Generate with AI'),
-          content: TextField(
-            controller: interestsController,
-            decoration: const InputDecoration(
-              labelText: 'Your Interests',
-              hintText: 'e.g., history, food, hiking',
-            ),
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Generate with AI'),
+        content: TextField(
+          controller: interestsController,
+          decoration: const InputDecoration(
+            labelText: 'Your Interests',
+            hintText: 'e.g., history, food, hiking',
           ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            ElevatedButton(
-              child: const Text('Generate'),
-              onPressed: () async {
-                if (interestsController.text.isEmpty) return;
-                Navigator.of(context).pop(); // Dialog එක close කිරීම
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            child: const Text('Generate'),
+            onPressed: () async {
+              if (interestsController.text.isEmpty) return;
+              Navigator.of(context).pop();
+              setState(() {
+                _isGenerating = true;
+              });
+
+              final items = await _aiService.generateItinerary(
+                trip: widget.trip,
+                interests: interestsController.text,
+              );
+              for (var item in items) {
+                await _firestoreService.addItineraryItem(item);
+              }
+
+              if (mounted) {
                 setState(() {
-                  _isGenerating = true;
+                  _isGenerating = false;
                 });
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-                final items = await _aiService.generateItinerary(
-                  trip: widget.trip,
-                  interests: interestsController.text,
-                );
+  void _showItineraryItemDialog({
+    required DateTime date,
+    ItineraryItem? itemToEdit,
+  }) {
+    final isEditing = itemToEdit != null;
+    final descriptionController = TextEditingController(
+      text: itemToEdit?.description ?? '',
+    );
+    TimeOfDay selectedTime = isEditing
+        ? TimeOfDay.fromDateTime(itemToEdit!.time)
+        : TimeOfDay.now();
 
-                // AI එකෙන් ලැබුණු සියලුම items එකින් එක Firestore එකට save කිරීම
-                for (var item in items) {
-                  await _firestoreService.addItineraryItem(item);
-                }
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                isEditing ? 'Edit Itinerary Item' : 'Add Itinerary Item',
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Time: ${selectedTime.format(context)}'),
+                      IconButton(
+                        icon: const Icon(Icons.edit_calendar_outlined),
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime,
+                          );
+                          if (time != null) {
+                            setDialogState(() {
+                              selectedTime = time;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                ElevatedButton(
+                  child: Text(isEditing ? 'Update' : 'Add'),
+                  onPressed: () {
+                    if (descriptionController.text.isEmpty) return;
 
-                if (mounted) {
-                  setState(() {
-                    _isGenerating = false;
-                  });
-                }
-              },
-            ),
-          ],
+                    final finalTime = DateTime(
+                      date.year,
+                      date.month,
+                      date.day,
+                      selectedTime.hour,
+                      selectedTime.minute,
+                    );
+
+                    final item = ItineraryItem(
+                      id: itemToEdit?.id,
+                      description: descriptionController.text,
+                      time: finalTime,
+                      tripId: widget.trip.id!,
+                      date: date,
+                      position: itemToEdit?.position ?? const GeoPoint(0, 0),
+                    );
+
+                    if (isEditing) {
+                      _firestoreService.updateItineraryItem(
+                        widget.trip.id!,
+                        item,
+                      );
+                    } else {
+                      _firestoreService.addItineraryItem(item);
+                    }
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  // අතින් (manually) Itinerary Item එකක් එකතු කිරීමට
-  void _showAddItineraryItemDialog(DateTime date) {
-    // මෙම function එකේ කේතය පාඩම් අංක 05 හි පරිදිම වේ.
-    // අවශ්‍ය නම් එය මෙහි paste කරගත හැක. දැනට එය හිස්ව තබමු.
-  }
-
-  // Itinerary Item එකක් delete කිරීමට
   void _deleteItineraryItem(String itemId) {
     _firestoreService.deleteItineraryItem(widget.trip.id!, itemId);
   }
@@ -95,12 +179,10 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
       (index) => widget.trip.startDate.add(Duration(days: index)),
     );
 
-    // Loading overlay එක සහ FAB එක පෙන්වීම සඳහා Stack widget එක භාවිතා කිරීම
     return Stack(
       children: [
-        // ප්‍රධාන Itinerary List එක
         ListView.builder(
-          padding: const EdgeInsets.only(bottom: 80), // FAB එකට ඉඩ තැබීමට
+          padding: const EdgeInsets.only(bottom: 80),
           itemCount: tripDays,
           itemBuilder: (context, index) {
             final date = tripDates[index];
@@ -112,45 +194,49 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Day $dayNumber (${DateFormat('EEE, MMM d').format(date)})',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Day $dayNumber (${DateFormat('EEE, MMM d').format(date)})',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          onPressed: () => _showItineraryItemDialog(date: date),
+                        ),
+                      ],
                     ),
                     const Divider(),
                     StreamBuilder<List<ItineraryItem>>(
                       stream: _firestoreService.getItinerary(widget.trip.id!),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting)
                           return const Center(
                             child: Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text("Loading..."),
                             ),
                           );
-                        }
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        if (!snapshot.hasData || snapshot.data!.isEmpty)
                           return const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text('No plans for this day yet.'),
                           );
-                        }
 
                         final dayItems = snapshot.data!
                             .where(
                               (item) => DateUtils.isSameDay(item.date, date),
                             )
                             .toList();
-
-                        if (dayItems.isEmpty) {
+                        if (dayItems.isEmpty)
                           return const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text('No plans for this day yet.'),
                           );
-                        }
 
                         return ListView.builder(
                           shrinkWrap: true,
@@ -163,12 +249,29 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
                                 DateFormat('hh:mm a').format(item.time),
                               ),
                               title: Text(item.description),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.redAccent,
-                                ),
-                                onPressed: () => _deleteItineraryItem(item.id!),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                    onPressed: () => _showItineraryItemDialog(
+                                      date: date,
+                                      itemToEdit: item,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.redAccent,
+                                    ),
+                                    onPressed: () =>
+                                        _deleteItineraryItem(item.id!),
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -181,8 +284,6 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
             );
           },
         ),
-
-        // "Generate with AI" Button
         Positioned(
           bottom: 16,
           right: 16,
@@ -192,8 +293,6 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
             icon: const Icon(Icons.auto_awesome),
           ),
         ),
-
-        // Loading Overlay
         if (_isGenerating)
           Container(
             color: Colors.black.withOpacity(0.7),
@@ -204,7 +303,7 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
                   CircularProgressIndicator(color: Colors.white),
                   SizedBox(height: 20),
                   Text(
-                    'AI is planning your trip...\nThis might take a moment.',
+                    'AI is planning your trip...',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
