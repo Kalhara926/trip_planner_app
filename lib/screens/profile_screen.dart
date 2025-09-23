@@ -1,6 +1,7 @@
 // File: lib/screens/profile_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:trip_planner_app/screens/carbon_tracker_screen.dart';
 import 'package:trip_planner_app/screens/currency_converter_screen.dart';
 import 'package:trip_planner_app/screens/document_wallet_screen.dart';
 import 'package:trip_planner_app/screens/emergency_contacts_screen.dart';
@@ -49,8 +50,6 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  // --- Helper Functions සම්පූර්ණයෙන්ම මෙහි ඇත ---
 
   Widget _buildProfileHeader(String avatarUrl, String name, String level) {
     return Column(
@@ -233,6 +232,16 @@ class ProfileScreen extends StatelessWidget {
             title: 'Power Plugs & Voltage',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const PowerInfoScreen()),
+            ),
+          ),
+          _buildListTile(
+            context,
+            icon: Icons.eco_rounded,
+            title: 'Carbon Footprint Tracker',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const CarbonTrackerScreen(),
+              ),
             ),
           ),
           const Divider(height: 1),
