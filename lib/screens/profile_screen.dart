@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:trip_planner_app/screens/currency_converter_screen.dart';
 import 'package:trip_planner_app/screens/document_wallet_screen.dart';
 import 'package:trip_planner_app/screens/emergency_contacts_screen.dart';
-import 'package:trip_planner_app/screens/loyalty_programs_screen.dart'; // Loyalty Programs screen එක import කිරීම
+import 'package:trip_planner_app/screens/loyalty_programs_screen.dart';
+import 'package:trip_planner_app/screens/notification_settings_screen.dart'; // Notification Settings screen එක import කිරීම
 import 'package:trip_planner_app/screens/tip_calculator_screen.dart';
 import 'package:trip_planner_app/services/auth_service.dart';
 
@@ -179,7 +180,6 @@ class ProfileScreen extends StatelessWidget {
               );
             },
           ),
-          // --- මෙතන යාවත්කාලීන කර ඇත ---
           _buildListTile(
             context,
             icon: Icons.loyalty_rounded,
@@ -224,11 +224,18 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {},
           ),
           const Divider(height: 1),
+          // --- මෙතන යාවත්කාලීන කර ඇත ---
           _buildListTile(
             context,
             icon: Icons.notifications_rounded,
             title: 'Notification Settings',
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
+            },
           ),
           _buildListTile(
             context,
