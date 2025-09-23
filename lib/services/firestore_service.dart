@@ -2,8 +2,10 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trip_planner_app/models/document_model.dart';
+import 'package:trip_planner_app/models/emergency_contact_model.dart';
 import 'package:trip_planner_app/models/expense_model.dart';
 import 'package:trip_planner_app/models/itinerary_item_model.dart';
+import 'package:trip_planner_app/models/loyalty_program_model.dart'; // LoyaltyProgram model import කිරීම
 import 'package:trip_planner_app/models/packing_item_model.dart';
 import 'package:trip_planner_app/models/trip_model.dart';
 import 'package:trip_planner_app/models/user_model.dart';
@@ -110,25 +112,48 @@ class FirestoreService {
       .delete();
 
   // --- Document Wallet Functions ---
-  Future<void> addDocument(TravelDocument document) {
-    return _db.collection('documents').add(document.toFirestore());
+  Future<void> addDocument(TravelDocument document) =>
+      _db.collection('documents').add(document.toFirestore());
+  Stream<List<TravelDocument>> getDocuments(String userId) => _db
+      .collection('documents')
+      .where('userId', isEqualTo: userId)
+      .orderBy('uploadedAt', descending: true)
+      .snapshots()
+      .map((s) => s.docs.map((d) => TravelDocument.fromFirestore(d)).toList());
+  Future<void> deleteDocument(String docId) =>
+      _db.collection('documents').doc(docId).delete();
+
+  // --- Emergency Contacts Functions ---
+  Future<void> addEmergencyContact(EmergencyContact contact) =>
+      _db.collection('emergency_contacts').add(contact.toFirestore());
+  Stream<List<EmergencyContact>> getEmergencyContacts(String userId) => _db
+      .collection('emergency_contacts')
+      .where('userId', isEqualTo: userId)
+      .snapshots()
+      .map(
+        (s) => s.docs.map((d) => EmergencyContact.fromFirestore(d)).toList(),
+      );
+  Future<void> deleteEmergencyContact(String docId) =>
+      _db.collection('emergency_contacts').doc(docId).delete();
+
+  // --- Loyalty Programs Functions ---
+  Future<void> addLoyaltyProgram(LoyaltyProgram program) {
+    return _db.collection('loyalty_programs').add(program.toFirestore());
   }
 
-  Stream<List<TravelDocument>> getDocuments(String userId) {
+  Stream<List<LoyaltyProgram>> getLoyaltyPrograms(String userId) {
     return _db
-        .collection('documents')
+        .collection('loyalty_programs')
         .where('userId', isEqualTo: userId)
-        .orderBy('uploadedAt', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => TravelDocument.fromFirestore(doc))
+              .map((doc) => LoyaltyProgram.fromFirestore(doc))
               .toList(),
         );
   }
 
-  Future<void> deleteDocument(String docId) {
-    // TODO: Also delete the file from Cloudinary using its public_id
-    return _db.collection('documents').doc(docId).delete();
+  Future<void> deleteLoyaltyProgram(String docId) {
+    return _db.collection('loyalty_programs').doc(docId).delete();
   }
 }

@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:trip_planner_app/screens/currency_converter_screen.dart';
 import 'package:trip_planner_app/screens/document_wallet_screen.dart';
+import 'package:trip_planner_app/screens/emergency_contacts_screen.dart';
+import 'package:trip_planner_app/screens/loyalty_programs_screen.dart'; // Loyalty Programs screen එක import කිරීම
 import 'package:trip_planner_app/screens/tip_calculator_screen.dart';
 import 'package:trip_planner_app/services/auth_service.dart';
 
@@ -14,7 +16,7 @@ class ProfileScreen extends StatelessWidget {
     const String userName = 'Sophia Carter';
     const String userLevel = 'Level 2 Traveller';
     const String avatarUrl =
-        'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=2680&auto.format&fit=crop';
+        'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=2680&auto=format&fit=crop';
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -157,44 +159,63 @@ class ProfileScreen extends StatelessWidget {
             context,
             icon: Icons.contact_emergency_rounded,
             title: 'Emergency Contacts',
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const EmergencyContactsScreen(),
+                ),
+              );
+            },
           ),
           _buildListTile(
             context,
             icon: Icons.wallet_rounded,
             title: 'Document Wallet',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const DocumentWalletScreen(),
-              ),
-            ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const DocumentWalletScreen(),
+                ),
+              );
+            },
           ),
+          // --- මෙතන යාවත්කාලීන කර ඇත ---
           _buildListTile(
             context,
             icon: Icons.loyalty_rounded,
             title: 'Loyalty Programs',
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const LoyaltyProgramsScreen(),
+                ),
+              );
+            },
           ),
           const Divider(height: 1),
           _buildListTile(
             context,
             icon: Icons.currency_exchange_rounded,
             title: 'Currency Converter',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const CurrencyConverterScreen(),
-              ),
-            ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CurrencyConverterScreen(),
+                ),
+              );
+            },
           ),
           _buildListTile(
             context,
             icon: Icons.calculate_rounded,
             title: 'Tip Calculator',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const TipCalculatorScreen(),
-              ),
-            ),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const TipCalculatorScreen(),
+                ),
+              );
+            },
           ),
           _buildListTile(
             context,
