@@ -5,8 +5,10 @@ import 'package:trip_planner_app/screens/currency_converter_screen.dart';
 import 'package:trip_planner_app/screens/document_wallet_screen.dart';
 import 'package:trip_planner_app/screens/emergency_contacts_screen.dart';
 import 'package:trip_planner_app/screens/loyalty_programs_screen.dart';
-import 'package:trip_planner_app/screens/notification_settings_screen.dart'; // Notification Settings screen එක import කිරීම
+import 'package:trip_planner_app/screens/notification_settings_screen.dart';
+import 'package:trip_planner_app/screens/power_info_screen.dart';
 import 'package:trip_planner_app/screens/tip_calculator_screen.dart';
+import 'package:trip_planner_app/screens/travel_insurance_screen.dart';
 import 'package:trip_planner_app/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -47,6 +49,8 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  // --- Helper Functions සම්පූර්ණයෙන්ම මෙහි ඇත ---
 
   Widget _buildProfileHeader(String avatarUrl, String name, String level) {
     return Column(
@@ -160,62 +164,62 @@ class ProfileScreen extends StatelessWidget {
             context,
             icon: Icons.contact_emergency_rounded,
             title: 'Emergency Contacts',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const EmergencyContactsScreen(),
-                ),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const EmergencyContactsScreen(),
+              ),
+            ),
           ),
           _buildListTile(
             context,
             icon: Icons.wallet_rounded,
             title: 'Document Wallet',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const DocumentWalletScreen(),
-                ),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const DocumentWalletScreen(),
+              ),
+            ),
           ),
           _buildListTile(
             context,
             icon: Icons.loyalty_rounded,
             title: 'Loyalty Programs',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LoyaltyProgramsScreen(),
-                ),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const LoyaltyProgramsScreen(),
+              ),
+            ),
+          ),
+          _buildListTile(
+            context,
+            icon: Icons.shield_rounded,
+            title: 'Travel Insurance',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const TravelInsuranceScreen(),
+              ),
+            ),
           ),
           const Divider(height: 1),
           _buildListTile(
             context,
             icon: Icons.currency_exchange_rounded,
             title: 'Currency Converter',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const CurrencyConverterScreen(),
-                ),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const CurrencyConverterScreen(),
+              ),
+            ),
           ),
           _buildListTile(
             context,
             icon: Icons.calculate_rounded,
             title: 'Tip Calculator',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const TipCalculatorScreen(),
-                ),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const TipCalculatorScreen(),
+              ),
+            ),
           ),
           _buildListTile(
             context,
@@ -223,19 +227,24 @@ class ProfileScreen extends StatelessWidget {
             title: 'Translation Tool',
             onTap: () {},
           ),
+          _buildListTile(
+            context,
+            icon: Icons.power_rounded,
+            title: 'Power Plugs & Voltage',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const PowerInfoScreen()),
+            ),
+          ),
           const Divider(height: 1),
-          // --- මෙතන යාවත්කාලීන කර ඇත ---
           _buildListTile(
             context,
             icon: Icons.notifications_rounded,
             title: 'Notification Settings',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const NotificationSettingsScreen(),
-                ),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const NotificationSettingsScreen(),
+              ),
+            ),
           ),
           _buildListTile(
             context,

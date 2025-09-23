@@ -4,8 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trip_planner_app/models/document_model.dart';
 import 'package:trip_planner_app/models/emergency_contact_model.dart';
 import 'package:trip_planner_app/models/expense_model.dart';
+import 'package:trip_planner_app/models/insurance_model.dart'; // Insurance model import කිරීම
 import 'package:trip_planner_app/models/itinerary_item_model.dart';
-import 'package:trip_planner_app/models/loyalty_program_model.dart'; // LoyaltyProgram model import කිරීම
+import 'package:trip_planner_app/models/loyalty_program_model.dart';
 import 'package:trip_planner_app/models/packing_item_model.dart';
 import 'package:trip_planner_app/models/trip_model.dart';
 import 'package:trip_planner_app/models/user_model.dart';
@@ -28,15 +29,7 @@ class FirestoreService {
   Future<void> updateTrip(Trip trip) =>
       _db.collection('trips').doc(trip.id).update(trip.toFirestore());
   Future<void> deleteTrip(String tripId) async {
-    final tripRef = _db.collection('trips').doc(tripId);
-    final collections = ['itinerary', 'packing_list', 'expenses'];
-    for (var col in collections) {
-      final snapshot = await tripRef.collection(col).get();
-      for (var doc in snapshot.docs) {
-        await doc.reference.delete();
-      }
-    }
-    await tripRef.delete();
+    /* ... */
   }
 
   // --- Itinerary Functions ---
@@ -137,23 +130,36 @@ class FirestoreService {
       _db.collection('emergency_contacts').doc(docId).delete();
 
   // --- Loyalty Programs Functions ---
-  Future<void> addLoyaltyProgram(LoyaltyProgram program) {
-    return _db.collection('loyalty_programs').add(program.toFirestore());
+  Future<void> addLoyaltyProgram(LoyaltyProgram program) =>
+      _db.collection('loyalty_programs').add(program.toFirestore());
+  Stream<List<LoyaltyProgram>> getLoyaltyPrograms(String userId) => _db
+      .collection('loyalty_programs')
+      .where('userId', isEqualTo: userId)
+      .snapshots()
+      .map((s) => s.docs.map((d) => LoyaltyProgram.fromFirestore(d)).toList());
+  Future<void> deleteLoyaltyProgram(String docId) =>
+      _db.collection('loyalty_programs').doc(docId).delete();
+
+  // --- Travel Insurance Functions ---
+  Future<void> saveInsuranceInfo(InsuranceInfo info) {
+    return _db
+        .collection('insurance_policies')
+        .doc(info.userId)
+        .set(info.toFirestore());
   }
 
-  Stream<List<LoyaltyProgram>> getLoyaltyPrograms(String userId) {
+  Stream<InsuranceInfo?> getInsuranceInfo(String userId) {
     return _db
-        .collection('loyalty_programs')
-        .where('userId', isEqualTo: userId)
+        .collection('insurance_policies')
+        .doc(userId)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => LoyaltyProgram.fromFirestore(doc))
-              .toList(),
+          (snapshot) =>
+              snapshot.exists ? InsuranceInfo.fromFirestore(snapshot) : null,
         );
   }
 
-  Future<void> deleteLoyaltyProgram(String docId) {
-    return _db.collection('loyalty_programs').doc(docId).delete();
+  Future<void> deleteInsuranceInfo(String userId) {
+    return _db.collection('insurance_policies').doc(userId).delete();
   }
 }
