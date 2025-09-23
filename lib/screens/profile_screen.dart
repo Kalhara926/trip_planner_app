@@ -1,10 +1,13 @@
 // File: lib/screens/profile_screen.dart
 
 import 'package:flutter/material.dart';
+
+import 'package.flutter/material.dart';
 import 'package:trip_planner_app/screens/carbon_tracker_screen.dart';
 import 'package:trip_planner_app/screens/currency_converter_screen.dart';
 import 'package:trip_planner_app/screens/document_wallet_screen.dart';
 import 'package:trip_planner_app/screens/emergency_contacts_screen.dart';
+import 'package:trip_planner_app/screens/health_info_screen.dart'; // Health Info screen එක import කිරීම
 import 'package:trip_planner_app/screens/loyalty_programs_screen.dart';
 import 'package:trip_planner_app/screens/notification_settings_screen.dart';
 import 'package:trip_planner_app/screens/power_info_screen.dart';
@@ -198,6 +201,19 @@ class ProfileScreen extends StatelessWidget {
                 builder: (context) => const TravelInsuranceScreen(),
               ),
             ),
+          ),
+          // --- මෙතන යාවත්කාලීන කර ඇත ---
+          _buildListTile(
+            context,
+            icon: Icons.health_and_safety_rounded,
+            title: 'Health & Vaccination',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const HealthInfoScreen(),
+                ),
+              );
+            },
           ),
           const Divider(height: 1),
           _buildListTile(
