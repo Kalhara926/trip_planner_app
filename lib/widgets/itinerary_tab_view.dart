@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trip_planner_app/models/itinerary_item_model.dart';
 import 'package:trip_planner_app/models/trip_model.dart';
+import 'package:trip_planner_app/screens/pre_trip_checklist_screen.dart'; // Pre-Trip Checklist screen එක import කිරීම
 import 'package:trip_planner_app/services/ai_service.dart';
 import 'package:trip_planner_app/services/firestore_service.dart';
 
@@ -181,108 +182,134 @@ class _ItineraryTabViewState extends State<ItineraryTabView> {
 
     return Stack(
       children: [
-        ListView.builder(
-          padding: const EdgeInsets.only(bottom: 80),
-          itemCount: tripDays,
-          itemBuilder: (context, index) {
-            final date = tripDates[index];
-            final dayNumber = index + 1;
-
-            return Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Day $dayNumber (${DateFormat('EEE, MMM d').format(date)})',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () => _showItineraryItemDialog(date: date),
-                        ),
-                      ],
+        ListView(
+          padding: const EdgeInsets.all(8.0).copyWith(bottom: 80),
+          children: [
+            // --- "Pre-Trip Checklist" Card එක මෙතනට එකතු කර ඇත ---
+            Card(
+              elevation: 2,
+              child: ListTile(
+                leading: Icon(
+                  Icons.checklist_rtl_rounded,
+                  color: Theme.of(context).primaryColor,
+                ),
+                title: const Text(
+                  'Pre-Trip Checklist',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text('Check tasks before you go'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PreTripChecklistScreen(),
                     ),
-                    const Divider(),
-                    StreamBuilder<List<ItineraryItem>>(
-                      stream: _firestoreService.getItinerary(widget.trip.id!),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("Loading..."),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Itinerary දවස් ටික පෙන්වන logic එක
+            ...List.generate(tripDays, (index) {
+              final date = tripDates[index];
+              final dayNumber = index + 1;
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Day $dayNumber (${DateFormat('EEE, MMM d').format(date)})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        if (!snapshot.hasData || snapshot.data!.isEmpty)
-                          return const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('No plans for this day yet.'),
-                          );
-
-                        final dayItems = snapshot.data!
-                            .where(
-                              (item) => DateUtils.isSameDay(item.date, date),
-                            )
-                            .toList();
-                        if (dayItems.isEmpty)
-                          return const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('No plans for this day yet.'),
-                          );
-
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: dayItems.length,
-                          itemBuilder: (context, itemIndex) {
-                            final item = dayItems[itemIndex];
-                            return ListTile(
-                              leading: Text(
-                                DateFormat('hh:mm a').format(item.time),
-                              ),
-                              title: Text(item.description),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.edit,
-                                      size: 20,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                    onPressed: () => _showItineraryItemDialog(
-                                      date: date,
-                                      itemToEdit: item,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete_outline,
-                                      color: Colors.redAccent,
-                                    ),
-                                    onPressed: () =>
-                                        _deleteItineraryItem(item.id!),
-                                  ),
-                                ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed: () =>
+                                _showItineraryItemDialog(date: date),
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      StreamBuilder<List<ItineraryItem>>(
+                        stream: _firestoreService.getItinerary(widget.trip.id!),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting)
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("Loading..."),
                               ),
                             );
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                          if (!snapshot.hasData || snapshot.data!.isEmpty)
+                            return const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('No plans for this day yet.'),
+                            );
+                          final dayItems = snapshot.data!
+                              .where(
+                                (item) => DateUtils.isSameDay(item.date, date),
+                              )
+                              .toList();
+                          if (dayItems.isEmpty)
+                            return const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('No plans for this day yet.'),
+                            );
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: dayItems.length,
+                            itemBuilder: (context, itemIndex) {
+                              final item = dayItems[itemIndex];
+                              return ListTile(
+                                leading: Text(
+                                  DateFormat('hh:mm a').format(item.time),
+                                ),
+                                title: Text(item.description),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                      onPressed: () => _showItineraryItemDialog(
+                                        date: date,
+                                        itemToEdit: item,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.redAccent,
+                                      ),
+                                      onPressed: () =>
+                                          _deleteItineraryItem(item.id!),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            }),
+          ],
         ),
         Positioned(
           bottom: 16,
