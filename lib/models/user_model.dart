@@ -1,10 +1,12 @@
-// lib/models/user_model.dart
+// File: lib/models/user_model.dart
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MyUser {
   final String uid;
   final String email;
   final String? fullName;
   final String? username;
-  // You can add other fields like phone number, dob etc. here
 
   MyUser({
     required this.uid,
@@ -13,13 +15,26 @@ class MyUser {
     this.username,
   });
 
+  // --- Firestore Map -> MyUser Object ---
+  // මෙම factory constructor එක අලුතින් එකතු කරන්න
+  factory MyUser.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data()!;
+    return MyUser(
+      uid: data['uid'] ?? '',
+      email: data['email'] ?? '',
+      fullName: data['fullName'],
+      username: data['username'],
+    );
+  }
+
+  // MyUser Object -> Firestore Map
   Map<String, dynamic> toFirestore() {
     return {
       'uid': uid,
       'email': email,
       'fullName': fullName,
       'username': username,
-      'createdAt': DateTime.now(), // To know when the user joined
+      'createdAt': FieldValue.serverTimestamp(),
     };
   }
 }

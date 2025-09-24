@@ -9,6 +9,7 @@ import 'package:trip_planner_app/models/insurance_model.dart';
 import 'package:trip_planner_app/models/itinerary_item_model.dart';
 import 'package:trip_planner_app/models/loyalty_program_model.dart';
 import 'package:trip_planner_app/models/packing_item_model.dart';
+import 'package:trip_planner_app/models/post_model.dart'; // Post model import කිරීම
 import 'package:trip_planner_app/models/trip_model.dart';
 import 'package:trip_planner_app/models/user_model.dart';
 
@@ -18,6 +19,32 @@ class FirestoreService {
   // --- User Functions ---
   Future<void> createUserProfile(MyUser user) =>
       _db.collection('users').doc(user.uid).set(user.toFirestore());
+
+  Future<MyUser?> getUserProfile(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    if (doc.exists) {
+      return MyUser.fromFirestore(
+        doc as DocumentSnapshot<Map<String, dynamic>>,
+      );
+    }
+    return null;
+  }
+
+  // --- Post & Community Functions ---
+  Future<void> createPost(Post post) {
+    return _db.collection('posts').add(post.toFirestore());
+  }
+
+  Stream<List<Post>> getPosts() {
+    return _db
+        .collection('posts')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Post.fromFirestore(doc)).toList(),
+        );
+  }
 
   // --- Trip Functions ---
   Future<void> addTrip(Trip trip) =>
